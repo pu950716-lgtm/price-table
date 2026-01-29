@@ -2,117 +2,136 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>Premium 시세표 에디터 v2</title>
+    <title>종합 지원금 시세표 에디터</title>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <style>
-        :root { --primary: #4f46e5; --bg: #f8fafc; --card: #ffffff; --text: #1e293b; }
-        body { font-family: 'Pretendard', sans-serif; background: var(--bg); color: var(--text); display: flex; justify-content: center; padding: 40px; }
-        .container { display: flex; gap: 40px; max-width: 1100px; width: 100%; }
+        :root { --primary: #4f46e5; --bg: #f1f5f9; --card: #ffffff; }
+        body { font-family: 'Pretendard', sans-serif; background: var(--bg); display: flex; justify-content: center; padding: 20px; gap: 20px; }
         
-        /* 에디터 영역 */
-        .editor { flex: 1.2; background: var(--card); padding: 24px; border-radius: 16px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
-        .input-row { display: grid; grid-template-columns: 2fr 1fr 1fr 0.5fr; gap: 10px; margin-bottom: 10px; align-items: center; }
-        input { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
+        /* 왼쪽 에디터 */
+        .editor-container { width: 500px; background: var(--card); padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); height: fit-content; }
+        .category-box { border: 1px solid #e2e8f0; padding: 15px; border-radius: 8px; margin-bottom: 20px; background: #fafafa; }
+        .category-title { font-weight: bold; margin-bottom: 10px; color: var(--primary); display: flex; justify-content: space-between; }
+        .input-row { display: grid; grid-template-columns: 2fr 1fr 1fr 40px; gap: 5px; margin-bottom: 5px; }
+        input { padding: 6px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 12px; }
         
-        /* 미리보기 영역 */
-        .preview { flex: 0.8; position: sticky; top: 40px; }
-        #capture-area { background: #fff; width: 380px; padding: 20px; border: 1px solid #e2e8f0; }
-        .table-title { background: var(--primary); color: white; text-align: center; padding: 12px; font-weight: bold; font-size: 18px; }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { border: 1px solid #e2e8f0; padding: 10px; text-align: center; font-size: 13px; }
-        th { background: #f8fafc; }
-        .price-val { color: #e11d48; font-weight: 800; }
+        /* 오른쪽 미리보기 */
+        .preview-container { position: sticky; top: 20px; }
+        #capture-area { background: #fff; width: 400px; padding: 15px; border: 1px solid #000; }
+        .main-header { background: #333; color: #fff; text-align: center; padding: 10px; font-size: 18px; font-weight: bold; margin-bottom: 10px; }
+        
+        .section-table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
+        .section-table th { background: #f1f5f9; border: 1px solid #ccc; padding: 5px; font-size: 12px; }
+        .section-table td { border: 1px solid #ccc; padding: 7px; text-align: center; font-size: 13px; }
+        .cat-header { background: #4f46e5 !important; color: white !important; font-weight: bold; }
+        .price-text { color: #e11d48; font-weight: bold; }
 
-        /* 버튼 스타일 */
-        .btn { cursor: pointer; border: none; border-radius: 6px; font-weight: bold; transition: 0.2s; }
-        .btn-add { background: #10b981; color: white; padding: 10px 20px; margin-bottom: 20px; }
-        .btn-save { background: var(--primary); color: white; width: 100%; padding: 15px; font-size: 16px; margin-top: 20px; }
-        .btn-del { background: #ef4444; color: white; padding: 5px; font-size: 11px; }
-        .btn:hover { opacity: 0.8; }
+        .btn { cursor: pointer; border: none; border-radius: 4px; padding: 5px 10px; font-size: 12px; font-weight: bold; }
+        .btn-add { background: #10b981; color: white; }
+        .btn-del { background: #ef4444; color: white; }
+        .btn-save { background: #333; color: white; width: 100%; padding: 15px; font-size: 16px; margin-top: 10px; border-radius: 8px; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div class="editor">
-        <h2>✏️ 시세 정보 입력</h2>
-        <div style="margin-bottom: 15px;">
-            <label>날짜: </label>
-            <input type="text" id="dateIn" value="2026-01-29" oninput="updateTable()" style="width: 150px;">
-        </div>
-        
-        <div id="input-container">
-            </div>
-        
-        <button class="btn btn-add" onclick="addRow()">+ 모델 추가</button>
-        <button class="btn btn-save" onclick="saveImage()">📸 이미지로 저장하기</button>
+<div class="editor-container">
+    <h2 style="margin-top:0">📑 시세표 상세 편집</h2>
+    <div style="margin-bottom:20px;">
+        날짜 입력: <input type="text" id="dateInput" value="2026-01-29" oninput="renderTable()" style="width:120px">
     </div>
 
-    <div class="preview">
-        <div id="capture-area">
-            <div class="table-title">🔥 오늘의 성지 시세표 (<span id="resDate">2026-01-29</span>)</div>
-            <table>
-                <thead>
-                    <tr>
-                        <th width="40%">모델명</th>
-                        <th width="30%">번호이동</th>
-                        <th width="30%">기기변경</th>
-                    </tr>
-                </thead>
-                <tbody id="table-body">
-                    </tbody>
-            </table>
-            <p style="text-align:center; font-size:11px; color:#64748b; margin-top:15px;">※ 실시간 시세로 변동될 수 있습니다.</p>
-        </div>
+    <div id="editor-fields"></div>
+
+    <button class="btn btn-save" onclick="saveImage()">📸 이미지로 저장하기</button>
+</div>
+
+<div class="preview-container">
+    <div id="capture-area">
+        <div class="main-header">📱 성지 통합 시세표 (<span id="viewDate">2026-01-29</span>)</div>
+        <div id="table-render-zone"></div>
+        <p style="font-size:10px; color:gray; text-align:center">※ 위 시세는 할부원금 기준이며 변동될 수 있습니다.</p>
     </div>
 </div>
 
 <script>
-    let rowCount = 0;
+    // 데이터 구조
+    const categories = [
+        { id: 'galaxy', name: '✨ GALAXY (삼성)', rows: [{name:'', m1:'', m2:''}] },
+        { id: 'iphone', name: '🍎 IPHONE (애플)', rows: [{name:'', m1:'', m2:''}] },
+        { id: 'kids', name: '👶 키즈폰/효도폰', rows: [{name:'', m1:'', m2:''}] },
+        { id: 'internet', name: '🌐 인터넷 + TV 결합', rows: [{name:'', m1:'', m2:''}] }
+    ];
 
-    // 초기 행 하나 추가
-    window.onload = () => { addRow(); };
+    // 에디터 UI 그리기
+    function initEditor() {
+        const container = document.getElementById('editor-fields');
+        container.innerHTML = '';
 
-    function addRow() {
-        rowCount++;
-        const id = rowCount;
-        
-        // 입력창 추가
-        const inputDiv = document.createElement('div');
-        inputDiv.className = 'input-row';
-        inputDiv.id = `input-row-${id}`;
-        inputDiv.innerHTML = `
-            <input type="text" placeholder="모델명" oninput="updateTable()" class="m-name">
-            <input type="text" placeholder="번이" oninput="updateTable()" class="m-move">
-            <input type="text" placeholder="기변" oninput="updateTable()" class="m-change">
-            <button class="btn btn-del" onclick="removeRow(${id})">삭제</button>
-        `;
-        document.getElementById('input-container').appendChild(inputDiv);
-        updateTable();
-    }
-
-    function removeRow(id) {
-        document.getElementById(`input-row-${id}`).remove();
-        updateTable();
-    }
-
-    function updateTable() {
-        document.getElementById('resDate').innerText = document.getElementById('dateIn').value;
-        const tbody = document.getElementById('table-body');
-        tbody.innerHTML = '';
-
-        const names = document.querySelectorAll('.m-name');
-        const moves = document.querySelectorAll('.m-move');
-        const changes = document.querySelectorAll('.m-change');
-
-        names.forEach((el, i) => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td style="font-weight:600;">${el.value || '모델명'}</td>
-                <td class="price-val">${moves[i].value || '0'}</td>
-                <td class="price-val">${changes[i].value || '0'}</td>
+        categories.forEach((cat, catIdx) => {
+            const box = document.createElement('div');
+            box.className = 'category-box';
+            box.innerHTML = `
+                <div class="category-title">
+                    <span>${cat.name}</span>
+                    <button class="btn btn-add" onclick="addRow(${catIdx})">+ 추가</button>
+                </div>
+                <div id="cat-rows-${catIdx}">
+                    ${cat.rows.map((row, rowIdx) => `
+                        <div class="input-row">
+                            <input type="text" placeholder="모델명" value="${row.name}" oninput="updateData(${catIdx}, ${rowIdx}, 'name', this.value)">
+                            <input type="text" placeholder="번이" value="${row.m1}" oninput="updateData(${catIdx}, ${rowIdx}, 'm1', this.value)">
+                            <input type="text" placeholder="기변" value="${row.m2}" oninput="updateData(${catIdx}, ${rowIdx}, 'm2', this.value)">
+                            <button class="btn btn-del" onclick="delRow(${catIdx}, ${rowIdx})">X</button>
+                        </div>
+                    `).join('')}
+                </div>
             `;
-            tbody.appendChild(tr);
+            container.appendChild(box);
+        });
+        renderTable();
+    }
+
+    function addRow(catIdx) {
+        categories[catIdx].rows.push({name:'', m1:'', m2:''});
+        initEditor();
+    }
+
+    function delRow(catIdx, rowIdx) {
+        categories[catIdx].rows.splice(rowIdx, 1);
+        initEditor();
+    }
+
+    function updateData(catIdx, rowIdx, field, val) {
+        categories[catIdx].rows[rowIdx][field] = val;
+        renderTable();
+    }
+
+    // 오른쪽 미리보기 테이블 그리기
+    function renderTable() {
+        document.getElementById('viewDate').innerText = document.getElementById('dateInput').value;
+        const zone = document.getElementById('table-render-zone');
+        zone.innerHTML = '';
+
+        categories.forEach(cat => {
+            if(cat.rows.length === 0) return;
+
+            let html = `<table class="section-table">
+                <thead>
+                    <tr><th colspan="3" class="cat-header">${cat.name}</th></tr>
+                    <tr><th width="40%">모델명</th><th width="30%">번호이동</th><th width="30%">기기변경</th></tr>
+                </thead>
+                <tbody>`;
+            
+            cat.rows.forEach(row => {
+                html += `<tr>
+                    <td style="text-align:left; padding-left:10px;">${row.name || '-'}</td>
+                    <td class="price-text">${row.m1 || '-'}</td>
+                    <td class="price-text">${row.m2 || '-'}</td>
+                </tr>`;
+            });
+
+            html += `</tbody></table>`;
+            zone.innerHTML += html;
         });
     }
 
@@ -120,11 +139,13 @@
         const area = document.getElementById('capture-area');
         html2canvas(area).then(canvas => {
             const link = document.createElement('a');
-            link.download = '시세표_' + document.getElementById('dateIn').value + '.png';
+            link.download = `시세표_${document.getElementById('dateInput').value}.png`;
             link.href = canvas.toDataURL();
             link.click();
         });
     }
+
+    initEditor();
 </script>
 
 </body>
