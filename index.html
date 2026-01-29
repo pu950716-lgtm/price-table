@@ -2,42 +2,49 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>종합 지원금 시세표 에디터</title>
+    <title>Premium 통합 시세표 에디터</title>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <style>
-        :root { --primary: #4f46e5; --bg: #f1f5f9; --card: #ffffff; }
+        :root { --primary: #4f46e5; --bg: #f1f5f9; --card: #ffffff; --danger: #ef4444; }
         body { font-family: 'Pretendard', sans-serif; background: var(--bg); display: flex; justify-content: center; padding: 20px; gap: 20px; }
         
-        /* 왼쪽 에디터 */
-        .editor-container { width: 500px; background: var(--card); padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); height: fit-content; }
+        /* 에디터 레이아웃 */
+        .editor-container { width: 550px; background: var(--card); padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         .category-box { border: 1px solid #e2e8f0; padding: 15px; border-radius: 8px; margin-bottom: 20px; background: #fafafa; }
-        .category-title { font-weight: bold; margin-bottom: 10px; color: var(--primary); display: flex; justify-content: space-between; }
-        .input-row { display: grid; grid-template-columns: 2fr 1fr 1fr 40px; gap: 5px; margin-bottom: 5px; }
-        input { padding: 6px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 12px; }
+        .category-title { font-weight: bold; margin-bottom: 12px; color: var(--primary); display: flex; justify-content: space-between; align-items: center; }
         
-        /* 오른쪽 미리보기 */
+        /* 입력창 그리드 수정 (X버튼 안으로 포함) */
+        .input-row { display: grid; gap: 8px; margin-bottom: 8px; align-items: center; background: #fff; padding: 5px; border-radius: 4px; border: 1px solid #eee; }
+        .row-mobile { grid-template-columns: 1.5fr 1fr 1fr 45px; } /* 일반 휴대폰용 */
+        .row-internet { grid-template-columns: 1.5fr 1.5fr 0.5fr 45px; } /* 인터넷용 */
+        
+        input { padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 13px; width: 100%; box-sizing: border-box; }
+        
+        /* 미리보기 레이아웃 */
         .preview-container { position: sticky; top: 20px; }
-        #capture-area { background: #fff; width: 400px; padding: 15px; border: 1px solid #000; }
-        .main-header { background: #333; color: #fff; text-align: center; padding: 10px; font-size: 18px; font-weight: bold; margin-bottom: 10px; }
+        #capture-area { background: #fff; width: 420px; padding: 20px; border: 1px solid #333; }
+        .main-header { background: #333; color: #fff; text-align: center; padding: 12px; font-size: 18px; font-weight: bold; margin-bottom: 15px; }
         
-        .section-table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
-        .section-table th { background: #f1f5f9; border: 1px solid #ccc; padding: 5px; font-size: 12px; }
-        .section-table td { border: 1px solid #ccc; padding: 7px; text-align: center; font-size: 13px; }
-        .cat-header { background: #4f46e5 !important; color: white !important; font-weight: bold; }
+        .section-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; table-layout: fixed; }
+        .section-table th { background: #f8fafc; border: 1px solid #ccc; padding: 8px; font-size: 12px; }
+        .section-table td { border: 1px solid #ccc; padding: 8px; text-align: center; font-size: 13px; word-break: break-all; }
+        .cat-header { background: var(--primary) !important; color: white !important; font-weight: bold; font-size: 14px; }
         .price-text { color: #e11d48; font-weight: bold; }
 
-        .btn { cursor: pointer; border: none; border-radius: 4px; padding: 5px 10px; font-size: 12px; font-weight: bold; }
-        .btn-add { background: #10b981; color: white; }
-        .btn-del { background: #ef4444; color: white; }
+        /* 버튼 스타일 */
+        .btn { cursor: pointer; border: none; border-radius: 4px; font-weight: bold; transition: 0.2s; }
+        .btn-add { background: #10b981; color: white; padding: 6px 12px; font-size: 12px; }
+        .btn-del { background: var(--danger); color: white; height: 32px; font-size: 12px; }
         .btn-save { background: #333; color: white; width: 100%; padding: 15px; font-size: 16px; margin-top: 10px; border-radius: 8px; }
+        .btn:hover { opacity: 0.8; }
     </style>
 </head>
 <body>
 
 <div class="editor-container">
-    <h2 style="margin-top:0">📑 시세표 상세 편집</h2>
-    <div style="margin-bottom:20px;">
-        날짜 입력: <input type="text" id="dateInput" value="2026-01-29" oninput="renderTable()" style="width:120px">
+    <h2 style="margin-top:0">📝 시세표 통합 편집</h2>
+    <div style="margin-bottom:20px; background: #eef2ff; padding: 15px; border-radius: 8px;">
+        📅 업데이트 날짜: <input type="text" id="dateInput" value="2026-01-29" oninput="renderTable()" style="width:140px; margin-left: 10px;">
     </div>
 
     <div id="editor-fields"></div>
@@ -49,39 +56,39 @@
     <div id="capture-area">
         <div class="main-header">📱 성지 통합 시세표 (<span id="viewDate">2026-01-29</span>)</div>
         <div id="table-render-zone"></div>
-        <p style="font-size:10px; color:gray; text-align:center">※ 위 시세는 할부원금 기준이며 변동될 수 있습니다.</p>
+        <p style="font-size:11px; color:#666; text-align:center; margin-top: 10px;">※ 실제 시세와 다를 수 있으니 방문 전 확인 바랍니다.</p>
     </div>
 </div>
 
 <script>
-    // 데이터 구조
+    // 데이터 구조 (인터넷 항목은 필드명이 다름)
     const categories = [
-        { id: 'galaxy', name: '✨ GALAXY (삼성)', rows: [{name:'', m1:'', m2:''}] },
-        { id: 'iphone', name: '🍎 IPHONE (애플)', rows: [{name:'', m1:'', m2:''}] },
-        { id: 'kids', name: '👶 키즈폰/효도폰', rows: [{name:'', m1:'', m2:''}] },
-        { id: 'internet', name: '🌐 인터넷 + TV 결합', rows: [{name:'', m1:'', m2:''}] }
+        { id: 'galaxy', name: '✨ GALAXY (삼성)', type: 'mobile', rows: [{v1:'', v2:'', v3:''}] },
+        { id: 'iphone', name: '🍎 IPHONE (애플)', type: 'mobile', rows: [{v1:'', v2:'', v3:''}] },
+        { id: 'kids', name: '👶 키즈폰/효도폰', type: 'mobile', rows: [{v1:'', v2:'', v3:''}] },
+        { id: 'internet', name: '🌐 인터넷 + TV 결합', type: 'internet', rows: [{v1:'', v2:'', v3:''}] }
     ];
 
-    // 에디터 UI 그리기
     function initEditor() {
         const container = document.getElementById('editor-fields');
         container.innerHTML = '';
 
         categories.forEach((cat, catIdx) => {
+            const isInternet = cat.type === 'internet';
             const box = document.createElement('div');
             box.className = 'category-box';
             box.innerHTML = `
                 <div class="category-title">
                     <span>${cat.name}</span>
-                    <button class="btn btn-add" onclick="addRow(${catIdx})">+ 추가</button>
+                    <button class="btn btn-add" onclick="addRow(${catIdx})">+ 줄 추가</button>
                 </div>
                 <div id="cat-rows-${catIdx}">
                     ${cat.rows.map((row, rowIdx) => `
-                        <div class="input-row">
-                            <input type="text" placeholder="모델명" value="${row.name}" oninput="updateData(${catIdx}, ${rowIdx}, 'name', this.value)">
-                            <input type="text" placeholder="번이" value="${row.m1}" oninput="updateData(${catIdx}, ${rowIdx}, 'm1', this.value)">
-                            <input type="text" placeholder="기변" value="${row.m2}" oninput="updateData(${catIdx}, ${rowIdx}, 'm2', this.value)">
-                            <button class="btn btn-del" onclick="delRow(${catIdx}, ${rowIdx})">X</button>
+                        <div class="input-row ${isInternet ? 'row-internet' : 'row-mobile'}">
+                            <input type="text" placeholder="${isInternet ? '상품명(예: LG+TV)' : '모델명'}" value="${row.v1}" oninput="updateData(${catIdx}, ${rowIdx}, 'v1', this.value)">
+                            <input type="text" placeholder="${isInternet ? '현금지원' : '번이'}" value="${row.v2}" oninput="updateData(${catIdx}, ${rowIdx}, 'v2', this.value)">
+                            <input type="text" placeholder="${isInternet ? '비고' : '기변'}" value="${row.v3}" oninput="updateData(${catIdx}, ${rowIdx}, 'v3', this.value)">
+                            <button class="btn btn-del" onclick="delRow(${catIdx}, ${rowIdx})">삭제</button>
                         </div>
                     `).join('')}
                 </div>
@@ -92,7 +99,7 @@
     }
 
     function addRow(catIdx) {
-        categories[catIdx].rows.push({name:'', m1:'', m2:''});
+        categories[catIdx].rows.push({v1:'', v2:'', v3:''});
         initEditor();
     }
 
@@ -106,7 +113,6 @@
         renderTable();
     }
 
-    // 오른쪽 미리보기 테이블 그리기
     function renderTable() {
         document.getElementById('viewDate').innerText = document.getElementById('dateInput').value;
         const zone = document.getElementById('table-render-zone');
@@ -114,19 +120,24 @@
 
         categories.forEach(cat => {
             if(cat.rows.length === 0) return;
+            const isInt = cat.type === 'internet';
 
             let html = `<table class="section-table">
                 <thead>
                     <tr><th colspan="3" class="cat-header">${cat.name}</th></tr>
-                    <tr><th width="40%">모델명</th><th width="30%">번호이동</th><th width="30%">기기변경</th></tr>
+                    <tr>
+                        <th width="45%">${isInt ? '상품명' : '모델명'}</th>
+                        <th width="27.5%">${isInt ? '지원금' : '번호이동'}</th>
+                        <th width="27.5%">${isInt ? '비고' : '기기변경'}</th>
+                    </tr>
                 </thead>
                 <tbody>`;
             
             cat.rows.forEach(row => {
                 html += `<tr>
-                    <td style="text-align:left; padding-left:10px;">${row.name || '-'}</td>
-                    <td class="price-text">${row.m1 || '-'}</td>
-                    <td class="price-text">${row.m2 || '-'}</td>
+                    <td style="text-align:left; font-weight:600;">${row.v1 || '-'}</td>
+                    <td class="price-text">${row.v2 || '-'}</td>
+                    <td class="${isInt ? '' : 'price-text'}">${row.v3 || '-'}</td>
                 </tr>`;
             });
 
@@ -137,10 +148,10 @@
 
     function saveImage() {
         const area = document.getElementById('capture-area');
-        html2canvas(area).then(canvas => {
+        html2canvas(area, { scale: 2 }).then(canvas => {
             const link = document.createElement('a');
             link.download = `시세표_${document.getElementById('dateInput').value}.png`;
-            link.href = canvas.toDataURL();
+            link.href = canvas.toDataURL('image/png');
             link.click();
         });
     }
