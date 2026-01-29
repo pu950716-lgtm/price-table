@@ -15,4 +15,309 @@
     .row { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
     input, textarea, select { padding:9px 10px; border:1px solid #ddd; border-radius:12px; background:#fff; }
     input[type="text"]{ min-width: 220px; }
-    .tables { display:flex; flex-direction:column;
+    .tables { display:flex; flex-direction:column; gap: 12px; }
+    table { width:100%; border-collapse: collapse; background:#fff; border:1px solid #eee; border-radius:12px; overflow:hidden; }
+    th, td { border-bottom:1px solid #eee; border-right:1px solid #eee; padding:10px; text-align:left; vertical-align:top; }
+    th:last-child, td:last-child { border-right:none; }
+    tr:last-child td { border-bottom:none; }
+    th { background:#fafafa; font-weight:600; }
+    .tableHead { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:8px; }
+    .tableTitle { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+    .pill { font-size:12px; padding:4px 8px; border:1px solid #eee; border-radius:999px; background:#fff; color:#333; }
+    .small { font-size: 12px; }
+  </style>
+</head>
+<body>
+
+  <div class="top">
+    <button class="btn primary" id="addTable">+ 새 테이블 추가</button>
+    <button class="btn" id="exportJson">JSON 내보내기</button>
+    <button class="btn" id="importJson">JSON 가져오기</button>
+    <button class="btn danger" id="resetAll">전체 초기화</button>
+    <span class="muted">자동 저장됨(로컬) · 여러 테이블 관리</span>
+  </div>
+
+  <div class="card">
+    <div class="row">
+      <b>사용법</b>
+      <span class="pill">테이블 추가</span>
+      <span class="pill">컬럼 추가</span>
+      <span class="pill">행 추가</span>
+      <span class="pill">셀 클릭해서 수정</span>
+    </div>
+    <div class="muted small" style="margin-top:8px;">
+      ※ 이 데이터는 현재 기기(브라우저)에 저장됩니다. 다른 PC/휴대폰과 공유하려면 나중에 Firebase 등으로 확장 가능.
+    </div>
+  </div>
+
+  <div id="tables" class="tables"></div>
+
+  <script>
+    const KEY = "price_tables_v1";
+
+    const defaultState = {
+      tables: [
+        {
+          id: cryptoRandomId(),
+          name: "예시 테이블 (Galaxy)",
+          columns: ["모델", "용량", "색상", "공시/선약", "현완", "비고"],
+          rows: [
+            ["S24", "256G", "블랙", "선약", "35", "번호이동"],
+            ["S24+", "512G", "퍼플", "공시", "45", "기변"]
+          ]
+        }
+      ]
+    };
+
+    function cryptoRandomId(){
+      try{
+        return crypto.getRandomValues(new Uint32Array(1))[0].toString(16);
+      }catch(e){
+        return Math.random().toString(16).slice(2);
+      }
+    }
+
+    function load(){
+      try{
+        const raw = localStorage.getItem(KEY);
+        return raw ? JSON.parse(raw) : structuredClone(defaultState);
+      }catch(e){
+        return structuredClone(defaultState);
+      }
+    }
+
+    function save(){
+      localStorage.setItem(KEY, JSON.stringify(state));
+    }
+
+    let state = load();
+
+    const $tables = document.getElementById("tables");
+    const $addTable = document.getElementById("addTable");
+    const $exportJson = document.getElementById("exportJson");
+    const $importJson = document.getElementById("importJson");
+    const $resetAll = document.getElementById("resetAll");
+
+    function escapeHtml(s){
+      return String(s)
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;");
+    }
+
+    function render(){
+      $tables.innerHTML = "";
+
+      state.tables.forEach((t) => {
+        const card = document.createElement("div");
+        card.className = "card";
+        card.dataset.tableId = t.id;
+
+        const head = document.createElement("div");
+        head.className = "tableHead";
+
+        head.innerHTML = `
+          <div class="tableTitle">
+            <b contenteditable="true" data-rename="${t.id}">${escapeHtml(t.name)}</b>
+            <span class="pill">${t.columns.length} cols</span>
+            <span class="pill">${t.rows.length} rows</span>
+          </div>
+          <div class="row">
+            <button class="btn" data-addcol="${t.id}">+ 컬럼</button>
+            <button class="btn" data-addrow="${t.id}">+ 행</button>
+            <button class="btn danger" data-deltable="${t.id}">테이블 삭제</button>
+          </div>
+        `;
+
+        const table = document.createElement("table");
+
+        // header
+        const thead = document.createElement("thead");
+        const trh = document.createElement("tr");
+        t.columns.forEach((c, ci) => {
+          const th = document.createElement("th");
+          th.innerHTML = `
+            <div class="row" style="justify-content:space-between; gap:8px;">
+              <span contenteditable="true" data-colname="${t.id}:${ci}">${escapeHtml(c)}</span>
+              <button class="btn small" data-delcol="${t.id}:${ci}">삭제</button>
+            </div>
+          `;
+          trh.appendChild(th);
+        });
+        // extra col for row delete
+        const thx = document.createElement("th");
+        thx.textContent = "행";
+        trh.appendChild(thx);
+
+        thead.appendChild(trh);
+        table.appendChild(thead);
+
+        // body
+        const tbody = document.createElement("tbody");
+        t.rows.forEach((row, ri) => {
+          const tr = document.createElement("tr");
+          t.columns.forEach((_, ci) => {
+            const td = document.createElement("td");
+            const val = row[ci] ?? "";
+            td.innerHTML = `<div contenteditable="true" data-cell="${t.id}:${ri}:${ci}" style="min-height:18px;">${escapeHtml(val)}</div>`;
+            tr.appendChild(td);
+          });
+
+          const tdDel = document.createElement("td");
+          tdDel.innerHTML = `<button class="btn small danger" data-delrow="${t.id}:${ri}">삭제</button>`;
+          tr.appendChild(tdDel);
+
+          tbody.appendChild(tr);
+        });
+        table.appendChild(tbody);
+
+        card.appendChild(head);
+        card.appendChild(table);
+        $tables.appendChild(card);
+      });
+    }
+
+    function findTable(id){
+      return state.tables.find(t => t.id === id);
+    }
+
+    // events
+    $addTable.onclick = () => {
+      state.tables.push({
+        id: cryptoRandomId(),
+        name: "새 테이블",
+        columns: ["모델", "요금제", "공시/선약", "현완", "비고"],
+        rows: [["", "", "", "", ""]]
+      });
+      save(); render();
+    };
+
+    $resetAll.onclick = () => {
+      if(!confirm("전체 데이터를 초기화할까요?")) return;
+      state = structuredClone(defaultState);
+      save(); render();
+    };
+
+    $exportJson.onclick = async () => {
+      const text = JSON.stringify(state, null, 2);
+      try{
+        await navigator.clipboard.writeText(text);
+        alert("JSON이 클립보드에 복사됐어요!");
+      }catch(e){
+        prompt("복사가 안 되면 여기서 복사하세요:", text);
+      }
+    };
+
+    $importJson.onclick = () => {
+      const raw = prompt("붙여넣을 JSON을 입력하세요:");
+      if(!raw) return;
+      try{
+        const parsed = JSON.parse(raw);
+        if(!parsed || !Array.isArray(parsed.tables)) throw new Error("형식 오류");
+        state = parsed;
+        save(); render();
+        alert("가져오기 완료!");
+      }catch(e){
+        alert("JSON 형식이 올바르지 않아요.");
+      }
+    };
+
+    document.addEventListener("click", (e) => {
+      const t = e.target;
+
+      // add column
+      if(t.dataset.addcol){
+        const id = t.dataset.addcol;
+        const table = findTable(id);
+        const colName = prompt("새 컬럼 이름:", "새 컬럼");
+        if(!colName) return;
+        table.columns.push(colName);
+        table.rows.forEach(r => r.push(""));
+        save(); render();
+      }
+
+      // add row
+      if(t.dataset.addrow){
+        const id = t.dataset.addrow;
+        const table = findTable(id);
+        table.rows.push(table.columns.map(()=> ""));
+        save(); render();
+      }
+
+      // delete table
+      if(t.dataset.deltable){
+        const id = t.dataset.deltable;
+        if(!confirm("이 테이블을 삭제할까요?")) return;
+        state.tables = state.tables.filter(x => x.id !== id);
+        save(); render();
+      }
+
+      // delete column
+      if(t.dataset.delcol){
+        const [id, ciStr] = t.dataset.delcol.split(":");
+        const ci = +ciStr;
+        const table = findTable(id);
+        if(table.columns.length <= 1){
+          alert("컬럼은 최소 1개는 있어야 해요.");
+          return;
+        }
+        if(!confirm("이 컬럼을 삭제할까요?")) return;
+        table.columns.splice(ci, 1);
+        table.rows.forEach(r => r.splice(ci, 1));
+        save(); render();
+      }
+
+      // delete row
+      if(t.dataset.delrow){
+        const [id, riStr] = t.dataset.delrow.split(":");
+        const ri = +riStr;
+        const table = findTable(id);
+        if(!confirm("이 행을 삭제할까요?")) return;
+        table.rows.splice(ri, 1);
+        save(); render();
+      }
+    });
+
+    // contenteditable changes
+    let saveTimer = null;
+    document.addEventListener("input", (e) => {
+      const el = e.target;
+
+      // rename table
+      if(el.dataset.rename){
+        const table = findTable(el.dataset.rename);
+        if(table){
+          table.name = el.textContent.trim() || "테이블";
+        }
+      }
+
+      // rename column
+      if(el.dataset.colname){
+        const [id, ciStr] = el.dataset.colname.split(":");
+        const ci = +ciStr;
+        const table = findTable(id);
+        if(table){
+          table.columns[ci] = el.textContent.trim() || "컬럼";
+        }
+      }
+
+      // cell edit
+      if(el.dataset.cell){
+        const [id, riStr, ciStr] = el.dataset.cell.split(":");
+        const ri = +riStr, ci = +ciStr;
+        const table = findTable(id);
+        if(table){
+          table.rows[ri][ci] = el.textContent;
+        }
+      }
+
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(() => save(), 300);
+    });
+
+    // init
+    render();
+  </script>
+</body>
+</html>
