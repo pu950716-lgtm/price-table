@@ -2,133 +2,165 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>Premium 3사 통합 에디터</title>
+    <title>Smart Price Editor</title>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <style>
-        :root { --sk: #e60012; --kt: #00b0ca; --lg: #e6007e; --bg: #f1f5f9; --primary: #4f46e5; }
-        body { font-family: 'Pretendard', sans-serif; background: var(--bg); display: flex; flex-direction: column; align-items: center; padding: 20px; }
+        :root { --sk: #ff4b5c; --kt: #20c997; --lg: #f06595; --main: #4c6ef5; --bg: #f8f9fa; }
+        body { font-family: 'Pretendard', -apple-system, sans-serif; background: var(--bg); margin: 0; display: flex; flex-direction: column; align-items: center; padding: 40px 20px; color: #343a40; }
         
-        /* 에디터 디자인 */
-        .editor-container { width: 100%; max-width: 950px; background: #fff; padding: 25px; border-radius: 12px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); margin-bottom: 20px; }
-        .cat-section { border: 1px solid #e2e8f0; padding: 15px; border-radius: 8px; margin-bottom: 20px; background: #fafafa; }
-        .input-row { display: grid; grid-template-columns: 2fr repeat(6, 1fr) 45px; gap: 5px; margin-bottom: 5px; }
-        input { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px; text-align: center; }
-        
-        /* 미리보기 디자인 (눈에 확 띄는 스타일) */
-        #capture-area { background: #fff; width: 900px; padding: 35px; border: 2px solid #333; }
-        .main-header { text-align: center; margin-bottom: 25px; border-bottom: 4px solid #333; padding-bottom: 15px; }
-        .main-title { font-size: 32px; font-weight: 900; color: #1e293b; letter-spacing: -1px; }
-        
-        table { width: 100%; border-collapse: collapse; table-layout: fixed; margin-bottom: 30px; border: 2px solid #333; }
-        
-        /* 헤더 디자인 보강 */
-        .th-main { background: #333; color: #fff; padding: 12px; font-size: 16px; border: 1px solid #333; }
-        .th-sk { background: var(--sk); color: #fff; border: 1px solid #333; }
-        .th-kt { background: var(--kt); color: #fff; border: 1px solid #333; }
-        .th-lg { background: var(--lg); color: #fff; border: 1px solid #333; }
-        .th-sub { background: #f1f5f9; font-size: 12px; color: #475569; border: 1px solid #333; padding: 5px; }
-        
-        /* 카테고리 행 보강 */
-        .cat-row-title { background: #4f46e5; color: #fff; font-weight: 900; text-align: center; font-size: 18px; padding: 10px; border: 1px solid #333; }
-        
-        td { border: 1px solid #333; padding: 12px; text-align: center; font-size: 16px; }
-        .model-name { font-weight: 700; text-align: left; padding-left: 15px; background: #fcfcfc; font-size: 15px; }
-        .price { font-weight: 900; color: #e11d48; font-size: 18px; }
+        /* 상단 탭 메뉴 */
+        .tab-menu { display: flex; gap: 10px; margin-bottom: 30px; background: #fff; padding: 8px; border-radius: 50px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        .tab-btn { border: none; padding: 12px 30px; border-radius: 50px; cursor: pointer; font-weight: bold; background: transparent; color: #868e96; transition: 0.3s; }
+        .tab-btn.active { background: var(--main); color: #fff; box-shadow: 0 4px 10px rgba(76, 110, 245, 0.3); }
 
-        .btn { cursor: pointer; border: none; border-radius: 6px; font-weight: bold; }
-        .btn-add { background: #10b981; color: white; padding: 6px 15px; }
-        .btn-save { background: #1e293b; color: white; padding: 20px; font-size: 20px; width: 100%; max-width: 950px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+        /* 에디터 & 프리뷰 컨테이너 */
+        .workspace { display: grid; grid-template-columns: 1fr 450px; gap: 40px; width: 100%; max-width: 1200px; }
+        .panel { background: #fff; border-radius: 20px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.03); }
+
+        /* 에디터 스타일 */
+        .row-item { display: grid; grid-template-columns: 1.5fr 1fr 1fr 40px; gap: 10px; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px dashed #eee; }
+        input { border: 1.5px solid #edf2ff; padding: 10px; border-radius: 8px; outline: none; transition: 0.2s; font-size: 14px; }
+        input:focus { border-color: var(--main); background: #f8faff; }
+        .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-left: 5px solid var(--main); padding-left: 15px; }
+
+        /* 프리뷰 스타일 (세련되게) */
+        #capture-area { background: #fff; width: 400px; padding: 30px; border-radius: 10px; }
+        .preview-card { border-radius: 15px; overflow: hidden; border: 1px solid #f1f3f5; box-shadow: 0 15px 35px rgba(0,0,0,0.05); }
+        .card-header { background: var(--main); color: #fff; padding: 20px; text-align: center; }
+        .card-header h2 { margin: 0; font-size: 20px; letter-spacing: -0.5px; }
+        
+        .type-tag { display: inline-block; padding: 4px 12px; border-radius: 4px; font-size: 11px; font-weight: bold; color: #fff; margin-bottom: 5px; }
+        .tag-sk { background: var(--sk); } .tag-kt { background: var(--kt); } .tag-lg { background: var(--lg); }
+
+        table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+        th { font-size: 11px; color: #adb5bd; padding: 8px; text-align: center; border-bottom: 1px solid #f1f3f5; }
+        td { padding: 12px 8px; font-size: 14px; text-align: center; border-bottom: 1px solid #f8f9fa; }
+        .m-name { text-align: left; font-weight: 600; color: #495057; }
+        .m-price { font-weight: 800; color: #f03e3e; font-size: 16px; }
+
+        .btn-add { background: #f1f3f5; color: #495057; border: none; padding: 6px 15px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600; }
+        .btn-save { grid-column: span 2; background: #212529; color: #fff; border: none; padding: 20px; border-radius: 15px; font-size: 18px; font-weight: bold; cursor: pointer; margin-top: 20px; }
     </style>
 </head>
 <body>
 
-<div class="editor-container">
-    <h2 style="color:var(--primary)">💎 프리미엄 통합 시세표 편집기</h2>
-    <div id="editor-zone"></div>
-</div>
-
-<div id="capture-area">
-    <div class="main-header">
-        <div class="main-title">📱 3사 통신사 모델별 통합 단가표</div>
-        <div style="font-size:16px; font-weight:bold; color:#666; margin-top:5px;">Update: 2026-01-29 | 실시간 최저가 기준</div>
+    <div class="tab-menu">
+        <button class="tab-btn active" onclick="switchTab('mobile')">📱 통신사별 상세</button>
+        <button class="tab-btn" onclick="switchTab('compare')">📊 3사 비교 시세</button>
     </div>
-    <table>
-        <thead>
-            <tr>
-                <th rowspan="2" class="th-main" width="22%">모델명</th>
-                <th colspan="2" class="th-sk">SK Telecom</th>
-                <th colspan="2" class="th-kt">KT</th>
-                <th colspan="2" class="th-lg">LG U+</th>
-            </tr>
-            <tr>
-                <th class="th-sub">번호이동</th><th class="th-sub">기기변경</th>
-                <th class="th-sub">번호이동</th><th class="th-sub">기기변경</th>
-                <th class="th-sub">번호이동</th><th class="th-sub">기기변경</th>
-            </tr>
-        </thead>
-        <tbody id="table-body"></tbody>
-    </table>
-    <div style="text-align:center; font-weight:bold; font-size:14px; color:#333;">※ 현금완납 기준 / 부가서비스 확인 요망</div>
-</div>
 
-<button class="btn btn-save" onclick="saveImage()">📸 이미지로 저장하여 공유하기</button>
+    <div class="workspace">
+        <div class="panel" id="editor-side">
+            </div>
+
+        <div class="preview-container">
+            <div id="capture-area">
+                <div class="preview-card">
+                    <div class="card-header">
+                        <span style="font-size: 12px; opacity: 0.8;">DAILY PRICE</span>
+                        <h2 id="view-title">통신사별 상세 시세표</h2>
+                    </div>
+                    <div id="preview-content" style="padding: 10px 20px;">
+                        </div>
+                </div>
+            </div>
+        </div>
+
+        <button class="btn-save" onclick="saveImage()">📸 현재 화면 이미지 저장</button>
+    </div>
 
 <script>
-    const categories = [
-        { name: '🔥 GALAXY S24 / Z-FLIP', rows: [{n:'갤럭시 S24', skb:'5', skg:'15', ktb:'10', ktg:'20', lgb:'0', lgg:'10'}] },
-        { name: '🍎 IPHONE 15 SERIES', rows: [{n:'아이폰 15 Pro', skb:'45', skg:'50', ktb:'40', ktg:'45', lgb:'35', lgg:'40'}] },
-        { name: '🎁 키즈폰 / 효도폰 특가', rows: [{n:'시나모롤폰 2', skb:'0', skg:'0', ktb:'공짜', ktg:'공짜', lgb:'-10', lgg:'0'}] }
+    let currentTab = 'mobile';
+    let mobileData = [
+        { brand: 'SKT', color: 'sk', rows: [{n:'아이폰 15', b:'10', g:'15'}] },
+        { brand: 'KT', color: 'kt', rows: [{n:'갤럭시 S24', b:'5', g:'10'}] }
+    ];
+    let compareData = [
+        { name: '🔥 프리미엄 모델', rows: [{n:'S24 Ultra', sk:'40', kt:'38', lg:'35'}] }
     ];
 
-    function render() {
-        const ez = document.getElementById('editor-zone');
-        const tb = document.getElementById('table-body');
-        ez.innerHTML = ''; tb.innerHTML = '';
-
-        categories.forEach((cat, cIdx) => {
-            const sec = document.createElement('div');
-            sec.className = 'cat-section';
-            sec.innerHTML = `
-                <div style="display:flex; justify-content:space-between; margin-bottom:10px; font-weight:bold;">
-                    <span>${cat.name}</span>
-                    <button class="btn btn-add" onclick="addRow(${cIdx})">+ 추가</button>
-                </div>
-                <div id="rows-${cIdx}">${cat.rows.map((r, rIdx) => `
-                    <div class="input-row">
-                        <input type="text" value="${r.n}" oninput="upd(${cIdx},${rIdx},'n',this.value)" placeholder="모델">
-                        <input type="text" value="${r.skb}" oninput="upd(${cIdx},${rIdx},'skb',this.value)">
-                        <input type="text" value="${r.skg}" oninput="upd(${cIdx},${rIdx},'skg',this.value)">
-                        <input type="text" value="${r.ktb}" oninput="upd(${cIdx},${rIdx},'ktb',this.value)">
-                        <input type="text" value="${r.ktg}" oninput="upd(${cIdx},${rIdx},'ktg',this.value)">
-                        <input type="text" value="${r.lgb}" oninput="upd(${cIdx},${rIdx},'lgb',this.value)">
-                        <input type="text" value="${r.lgg}" oninput="upd(${cIdx},${rIdx},'lgg',this.value)">
-                        <button class="btn" style="background:#ef4444; color:#fff;" onclick="del(${cIdx},${rIdx})">X</button>
-                    </div>`).join('')}</div>`;
-            ez.appendChild(sec);
-
-            if(cat.rows.length > 0) {
-                const trH = document.createElement('tr');
-                trH.innerHTML = `<td colspan="7" class="cat-row-title">${cat.name}</td>`;
-                tb.appendChild(trH);
-                cat.rows.forEach(r => {
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `<td class="model-name">${r.n || '-'}</td>
-                        <td class="price">${r.skb || '-'}</td><td class="price">${r.skg || '-'}</td>
-                        <td class="price">${r.ktb || '-'}</td><td class="price">${r.ktg || '-'}</td>
-                        <td class="price">${r.lgb || '-'}</td><td class="price">${r.lgg || '-'}</td>`;
-                    tb.appendChild(tr);
-                });
-            }
-        });
+    function switchTab(tab) {
+        currentTab = tab;
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        event.target.classList.add('active');
+        render();
     }
 
-    function addRow(cIdx) { categories[cIdx].rows.push({n:'', skb:'', skg:'', ktb:'', ktg:'', lgb:'', lgg:''}); render(); }
-    function del(cIdx, rIdx) { categories[cIdx].rows.splice(rIdx, 1); render(); }
-    function upd(cIdx, rIdx, k, v) { categories[cIdx].rows[rIdx][k] = v; render(); }
+    function render() {
+        const editor = document.getElementById('editor-side');
+        const preview = document.getElementById('preview-content');
+        const title = document.getElementById('view-title');
+        editor.innerHTML = ''; preview.innerHTML = '';
+
+        if(currentTab === 'mobile') {
+            title.innerText = "통신사별 상세 시세표";
+            mobileData.forEach((sec, sIdx) => {
+                // 에디터 UI
+                let html = `<div class="section-header"><strong>${sec.brand}</strong> <button class="btn-add" onclick="addRow(${sIdx})">+ 추가</button></div>`;
+                sec.rows.forEach((r, rIdx) => {
+                    html += `<div class="row-item">
+                        <input type="text" value="${r.n}" oninput="update(${sIdx},${rIdx},'n',this.value)" placeholder="모델">
+                        <input type="text" value="${r.b}" oninput="update(${sIdx},${rIdx},'b',this.value)" placeholder="번이">
+                        <input type="text" value="${r.g}" oninput="update(${sIdx},${rIdx},'g',this.value)" placeholder="기변">
+                        <button onclick="delRow(${sIdx},${rIdx})" style="border:none;background:none;color:#ff6b6b;cursor:pointer">✕</button>
+                    </div>`;
+                });
+                editor.innerHTML += `<div style="margin-bottom:30px">${html}</div>`;
+
+                // 프리뷰 UI
+                let tableHtml = `<div class="type-tag tag-${sec.color}">${sec.brand}</div>
+                    <table><tr><th>모델명</th><th>번이</th><th>기변</th></tr>`;
+                sec.rows.forEach(r => {
+                    tableHtml += `<tr><td class="m-name">${r.n||'-'}</td><td class="m-price">${r.b||'-'}</td><td class="m-price">${r.g||'-'}</td></tr>`;
+                });
+                preview.innerHTML += tableHtml + `</table>`;
+            });
+        } else {
+            title.innerText = "3사 통합 비교표";
+            compareData.forEach((sec, sIdx) => {
+                let html = `<div class="section-header"><strong>${sec.name}</strong> <button class="btn-add" onclick="addRow(${sIdx})">+ 추가</button></div>`;
+                sec.rows.forEach((r, rIdx) => {
+                    html += `<div style="display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr 40px;gap:10px;margin-bottom:10px;">
+                        <input type="text" value="${r.n}" oninput="update(${sIdx},${rIdx},'n',this.value)">
+                        <input type="text" value="${r.sk}" oninput="update(${sIdx},${rIdx},'sk',this.value)" placeholder="SK">
+                        <input type="text" value="${r.kt}" oninput="update(${sIdx},${rIdx},'kt',this.value)" placeholder="KT">
+                        <input type="text" value="${r.lg}" oninput="update(${sIdx},${rIdx},'lg',this.value)" placeholder="LG">
+                        <button onclick="delRow(${sIdx},${rIdx})" style="border:none;background:none;color:#ff6b6b;cursor:pointer">✕</button>
+                    </div>`;
+                });
+                editor.innerHTML += html;
+
+                let tableHtml = `<div style="font-weight:bold; font-size:14px; margin-top:15px; color:var(--main)"># ${sec.name}</div>
+                    <table><tr><th>모델</th><th style="color:var(--sk)">SK</th><th style="color:var(--kt)">KT</th><th style="color:var(--lg)">LG</th></tr>`;
+                sec.rows.forEach(r => {
+                    tableHtml += `<tr><td class="m-name">${r.n||'-'}</td><td class="m-price">${r.sk||'-'}</td><td class="m-price">${r.kt||'-'}</td><td class="m-price">${r.lg||'-'}</td></tr>`;
+                });
+                preview.innerHTML += tableHtml + `</table>`;
+            });
+        }
+    }
+
+    function addRow(sIdx) {
+        if(currentTab === 'mobile') mobileData[sIdx].rows.push({n:'', b:'', g:''});
+        else compareData[sIdx].rows.push({n:'', sk:'', kt:'', lg:''});
+        render();
+    }
+    function delRow(sIdx, rIdx) {
+        if(currentTab === 'mobile') mobileData[sIdx].rows.splice(rIdx, 1);
+        else compareData[sIdx].rows.splice(rIdx, 1);
+        render();
+    }
+    function update(sIdx, rIdx, k, v) {
+        if(currentTab === 'mobile') mobileData[sIdx].rows[rIdx][k] = v;
+        else compareData[sIdx].rows[rIdx][k] = v;
+        render();
+    }
     function saveImage() {
-        html2canvas(document.querySelector("#capture-area"), {scale:3}).then(canvas => {
+        html2canvas(document.querySelector("#capture-area"), {scale:3, backgroundColor:null}).then(canvas => {
             const a = document.createElement('a');
-            a.download = `Premium_시세표.png`; a.href = canvas.toDataURL(); a.click();
+            a.download = `PriceTable_${new Date().getTime()}.png`;
+            a.href = canvas.toDataURL();
+            a.click();
         });
     }
     render();
