@@ -1,97 +1,424 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>✨ 모던 시세표 생성기</title>
-    <link rel="stylesheet" href="style.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>가격표</title>
+
+  <!-- html2canvas: 출력 화면을 이미지로 저장 -->
+  <script defer src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+
+  <style>
+    :root{
+      --bg:#0b0f1a;
+      --card:#0f172a;
+      --card2:#0b1220;
+      --line:rgba(255,255,255,.08);
+      --text:#e5e7eb;
+      --muted:rgba(229,231,235,.65);
+      --accent:#e7c46a; /* 골드 */
+      --btn:#111827;
+      --btn2:#0b1220;
+      --white:#ffffff;
+    }
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      font-family: system-ui,-apple-system,Pretendard,SUIT,Segoe UI,Roboto,sans-serif;
+      background: radial-gradient(1000px 600px at 15% 10%, rgba(231,196,106,.15), transparent 60%),
+                  radial-gradient(900px 500px at 85% 20%, rgba(59,130,246,.10), transparent 55%),
+                  var(--bg);
+      color:var(--text);
+    }
+    .wrap{ max-width:1200px; margin:0 auto; padding:22px 16px 60px; }
+
+    /* Top bar */
+    .top{
+      position:sticky; top:0; z-index:20;
+      backdrop-filter: blur(10px);
+      background: linear-gradient(to bottom, rgba(11,15,26,.92), rgba(11,15,26,.65));
+      border-bottom: 1px solid var(--line);
+    }
+    .topIn{ max-width:1200px; margin:0 auto; padding:14px 16px; display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+    .brand{
+      display:flex; gap:10px; align-items:center; margin-right:auto;
+    }
+    .dot{
+      width:10px; height:10px; border-radius:999px; background:var(--accent);
+      box-shadow: 0 0 0 4px rgba(231,196,106,.12);
+    }
+    .title{ font-weight:700; letter-spacing:-.2px; }
+    .sub{ color:var(--muted); font-size:13px; }
+
+    .btn{
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.03);
+      color:var(--text);
+      padding:9px 12px;
+      border-radius:12px;
+      cursor:pointer;
+      transition:.15s;
+      display:inline-flex; gap:8px; align-items:center;
+      font-weight:600;
+    }
+    .btn:hover{ transform: translateY(-1px); border-color: rgba(231,196,106,.35); }
+    .btn.primary{
+      background: linear-gradient(180deg, rgba(231,196,106,.18), rgba(231,196,106,.08));
+      border-color: rgba(231,196,106,.35);
+    }
+    .btn.danger{ border-color: rgba(239,68,68,.35); }
+    .btn.small{ padding:7px 10px; font-size:12px; font-weight:600; }
+    .seg{
+      display:flex; border:1px solid var(--line); border-radius:12px; overflow:hidden;
+    }
+    .seg button{
+      border:0; background:transparent; color:var(--muted);
+      padding:9px 12px; cursor:pointer; font-weight:700;
+    }
+    .seg button.on{ background: rgba(255,255,255,.05); color:var(--text); }
+
+    /* Cards */
+    .grid{ display:grid; grid-template-columns: 1.2fr .8fr; gap:14px; margin-top:16px; }
+    @media (max-width: 980px){ .grid{ grid-template-columns:1fr; } }
+
+    .card{
+      background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:16px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.25);
+    }
+    .card h3{ margin:0 0 10px; letter-spacing:-.2px; }
+    .muted{ color:var(--muted); font-size:13px; }
+
+    .row{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+    .input{
+      background: rgba(255,255,255,.03);
+      border:1px solid var(--line);
+      color:var(--text);
+      padding:10px 12px;
+      border-radius:12px;
+      outline:none;
+      min-width: 240px;
+    }
+    .pill{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:6px 10px;
+      border:1px solid var(--line);
+      border-radius:999px;
+      background: rgba(255,255,255,.02);
+      color:var(--muted);
+      font-size:12px;
+    }
+
+    /* Table */
+    .twrap{ overflow:auto; border-radius:16px; border:1px solid var(--line); }
+    table{ width:100%; border-collapse: separate; border-spacing:0; min-width: 880px; }
+    thead th{
+      position:sticky; top:0;
+      background: rgba(15,23,42,.85);
+      backdrop-filter: blur(8px);
+      border-bottom:1px solid var(--line);
+      font-size:12px;
+      letter-spacing:.2px;
+      text-transform: none;
+      padding:12px;
+      color: rgba(229,231,235,.9);
+    }
+    tbody td{
+      padding:12px;
+      border-bottom:1px solid var(--line);
+      color: rgba(229,231,235,.92);
+      vertical-align: top;
+      font-size:14px;
+    }
+    tbody tr:hover td{ background: rgba(255,255,255,.02); }
+    th, td{ border-right:1px solid var(--line); }
+    th:last-child, td:last-child{ border-right:none; }
+    tbody tr:last-child td{ border-bottom:none; }
+
+    .cell{
+      min-height:18px;
+      outline:none;
+      border-radius:10px;
+      padding:6px 8px;
+    }
+    .cell:focus{ box-shadow: 0 0 0 3px rgba(231,196,106,.18); background: rgba(231,196,106,.06); }
+
+    /* Print area (View mode) */
+    .print{
+      background: #ffffff;
+      color:#0b0f1a;
+      border-radius:18px;
+      overflow:hidden;
+      border:1px solid rgba(0,0,0,.08);
+    }
+    .printHeader{
+      padding:18px 18px 14px;
+      border-bottom:1px solid rgba(0,0,0,.08);
+      background: linear-gradient(180deg, rgba(231,196,106,.10), rgba(0,0,0,0));
+    }
+    .printTitle{ font-size:20px; font-weight:800; letter-spacing:-.4px; }
+    .printSub{ margin-top:6px; font-size:12px; color: rgba(0,0,0,.55); }
+    .goldline{ height:2px; background: linear-gradient(90deg, rgba(231,196,106,.0), rgba(231,196,106,1), rgba(231,196,106,.0)); margin-top:10px; }
+
+    .ptableWrap{ overflow:auto; }
+    .ptable{ width:100%; border-collapse: collapse; min-width: 860px; }
+    .ptable th{
+      font-size:12px;
+      text-align:left;
+      padding:10px 12px;
+      border-bottom:1px solid rgba(0,0,0,.10);
+      background: rgba(0,0,0,.02);
+      color:#111827;
+      white-space:nowrap;
+    }
+    .ptable td{
+      padding:10px 12px;
+      border-bottom:1px solid rgba(0,0,0,.08);
+      color:#111827;
+      font-size:13px;
+    }
+    .ptable tr:last-child td{ border-bottom:none; }
+    .ptag{
+      display:inline-block;
+      padding:4px 8px;
+      border-radius:999px;
+      background: rgba(17,24,39,.06);
+      color:#111827;
+      font-size:12px;
+      margin-right:6px;
+      white-space:nowrap;
+    }
+
+    .hide{ display:none; }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <h1>📱 모던 시세표 생성기</h1>
-        <p>원하는 정보를 입력하여 시세표를 만들고 이미지로 저장해보세요!</p>
 
-        <div class="input-section">
-            <div class="input-group">
-                <label for="dateInput">날짜:</label>
-                <input type="date" id="dateInput" value="2026-01-29" onchange="updateTable()">
-            </div>
-            <div class="input-group">
-                <label for="carrierInput">통신사:</label>
-                <select id="carrierInput" onchange="updateTable()">
-                    <option value="SKT">SKT</option>
-                    <option value="KT">KT</option>
-                    <option value="LG U+">LG U+</option>
-                </select>
-            </div>
-            <div class="input-group">
-                <label for="modelInput">모델명:</label>
-                <input type="text" id="modelInput" placeholder="예: 아이폰 15 128G" onkeyup="updateTable()">
-            </div>
-            <div class="input-group">
-                <label for="priceInput">현금가:</label>
-                <input type="number" id="priceInput" placeholder="숫자만 입력 (예: 1000000)" onkeyup="updateTable()" value="0"> 원
-            </div>
-            <div class="input-group">
-                <label for="noteInput">추가 메모:</label>
-                <input type="text" id="noteInput" placeholder="예: 선착순 마감" onkeyup="updateTable()">
-            </div>
-            <button onclick="saveAsImage()">🖼️ 시세표 이미지 저장</button>
+  <div class="top">
+    <div class="topIn">
+      <div class="brand">
+        <span class="dot"></span>
+        <div>
+          <div class="title">가격표 관리</div>
+          <div class="sub">편집 → 출력 → 이미지 저장(PNG)</div>
+        </div>
+      </div>
+
+      <div class="seg">
+        <button id="tabEdit" class="on">✏️ 편집</button>
+        <button id="tabView">🖥️ 출력</button>
+      </div>
+
+      <button class="btn primary" id="addTable">+ 새 테이블</button>
+      <button class="btn" id="exportJson">JSON 내보내기</button>
+      <button class="btn" id="importJson">JSON 가져오기</button>
+      <button class="btn danger" id="resetAll">초기화</button>
+    </div>
+  </div>
+
+  <div class="wrap">
+
+    <!-- EDIT MODE -->
+    <div id="editMode">
+      <div class="grid">
+        <div class="card">
+          <h3>모델 테이블</h3>
+          <div class="muted">표 안을 클릭해서 바로 수정하세요. (자동 저장)</div>
+          <div style="height:10px"></div>
+          <div id="tables"></div>
         </div>
 
-        <div class="preview-section">
-            <h2>✨ 미리보기</h2>
-            <div id="capture-area" class="price-table">
-                <div class="table-header">
-                    <span id="resCarrier">SKT</span> <span id="resDate">2026-01-29</span>
-                </div>
-                <div class="table-body">
-                    <p class="model-name" id="resModel">모델명을 입력해주세요</p>
-                    <p class="price-value"><strong id="resPrice">0</strong> 원</p>
-                </div>
-                <div class="table-footer">
-                    <p id="resNote">추가 메모를 입력해주세요</p>
-                </div>
-            </div>
+        <div class="card">
+          <h3>출력 설정</h3>
+          <div class="muted">손님에게 보여줄 출력 화면 제목/문구를 설정합니다.</div>
+          <div style="height:12px"></div>
+
+          <div class="row">
+            <span class="pill">제목</span>
+            <input id="printTitle" class="input" placeholder="예: 동탄폰 오늘의 가격표" />
+          </div>
+          <div style="height:10px"></div>
+          <div class="row">
+            <span class="pill">설명</span>
+            <input id="printSub" class="input" placeholder="예: 현금완납/번호이동 기준 · 재고 변동 가능" />
+          </div>
+          <div style="height:16px"></div>
+
+          <div class="muted">
+            ✅ 출력 탭에서 “이미지 저장” 누르면 PNG로 저장됩니다.
+          </div>
         </div>
+      </div>
     </div>
 
-    <script>
-        // 초기 날짜 설정
-        document.getElementById('dateInput').value = new Date().toISOString().slice(0, 10);
-        
-        // 페이지 로드 시 초기값으로 테이블 업데이트
-        document.addEventListener('DOMContentLoaded', () => {
-            updateTable();
-        });
+    <!-- VIEW MODE -->
+    <div id="viewMode" class="hide">
+      <div class="row" style="margin:16px 0;">
+        <button class="btn primary" id="saveImage">📸 이미지 저장</button>
+        <span class="muted">출력 화면을 그대로 PNG로 저장</span>
+      </div>
 
-        function updateTable() {
-            const date = document.getElementById('dateInput').value;
-            const carrier = document.getElementById('carrierInput').value;
-            const model = document.getElementById('modelInput').value;
-            const price = document.getElementById('priceInput').value;
-            const note = document.getElementById('noteInput').value;
+      <div id="printArea" class="print">
+        <div class="printHeader">
+          <div class="printTitle" id="printTitleOut">가격표</div>
+          <div class="printSub" id="printSubOut">현금완납 / 번호이동 기준 · 재고 변동 가능</div>
+          <div class="goldline"></div>
+        </div>
 
-            document.getElementById('resDate').innerText = date;
-            document.getElementById('resCarrier').innerText = carrier;
-            document.getElementById('resModel').innerText = model || '모델명을 입력해주세요'; // 입력값이 없으면 기본 텍스트
-            document.getElementById('resPrice').innerText = price ? Number(price).toLocaleString() : '0'; // 천 단위 콤마
-            document.getElementById('resNote').innerText = note || '추가 메모를 입력해주세요'; // 입력값이 없으면 기본 텍스트
+        <div id="printTables" style="padding: 14px 14px 18px;"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    const KEY = "price_tables_premium_v1";
+
+    const defaultState = {
+      printTitle: "동탄폰 오늘의 가격표",
+      printSub: "현금완납/번호이동 기준 · 재고 변동 가능",
+      tables: [
+        {
+          id: rid(),
+          name: "Galaxy",
+          columns: ["모델", "용량", "요금제", "공시/선약", "현완", "비고"],
+          rows: [
+            ["S24", "256G", "5G 프라임", "선약", "35", "번호이동"],
+            ["S24+", "512G", "5G 플래티넘", "공시", "45", "기변"]
+          ]
         }
+      ]
+    };
 
-        function saveAsImage() {
-            const captureArea = document.getElementById('capture-area');
-            html2canvas(captureArea, {
-                scale: 2, // 이미지 해상도를 높이기 위해 스케일 조정
-                backgroundColor: '#f7f9fc' // 배경색을 지정하여 투명하게 저장되는 문제 방지
-            }).then(canvas => {
-                const link = document.createElement('a');
-                link.download = '시세표.png';
-                link.href = canvas.toDataURL('image/png');
-                link.click();
-            });
-        }
-    </script>
-</body>
-</html>
+    function rid(){
+      try{ return crypto.getRandomValues(new Uint32Array(1))[0].toString(16); }
+      catch(e){ return Math.random().toString(16).slice(2); }
+    }
+    function load(){
+      try{
+        const raw = localStorage.getItem(KEY);
+        return raw ? JSON.parse(raw) : structuredClone(defaultState);
+      }catch(e){
+        return structuredClone(defaultState);
+      }
+    }
+    function save(){ localStorage.setItem(KEY, JSON.stringify(state)); }
+
+    let state = load();
+
+    const $ = (id) => document.getElementById(id);
+    const editMode = $("editMode");
+    const viewMode = $("viewMode");
+    const tabEdit = $("tabEdit");
+    const tabView = $("tabView");
+
+    const printTitle = $("printTitle");
+    const printSub = $("printSub");
+    const printTitleOut = $("printTitleOut");
+    const printSubOut = $("printSubOut");
+
+    const tablesWrap = $("tables");
+    const printTables = $("printTables");
+
+    function esc(s){
+      return String(s)
+        .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;");
+    }
+
+    function setMode(mode){
+      const isEdit = mode === "edit";
+      editMode.classList.toggle("hide", !isEdit);
+      viewMode.classList.toggle("hide", isEdit);
+      tabEdit.classList.toggle("on", isEdit);
+      tabView.classList.toggle("on", !isEdit);
+      if(!isEdit) renderPrint();
+    }
+
+    function findTable(id){ return state.tables.find(t => t.id === id); }
+
+    function renderEdit(){
+      printTitle.value = state.printTitle || "";
+      printSub.value = state.printSub || "";
+
+      tablesWrap.innerHTML = "";
+      state.tables.forEach(t => {
+        const box = document.createElement("div");
+        box.className = "card";
+        box.style.margin = "0 0 14px";
+        box.innerHTML = `
+          <div class="row" style="justify-content:space-between;">
+            <div class="row">
+              <b contenteditable="true" data-rename="${t.id}" style="outline:none;">${esc(t.name)}</b>
+              <span class="pill">${t.columns.length} cols</span>
+              <span class="pill">${t.rows.length} rows</span>
+            </div>
+            <div class="row">
+              <button class="btn small" data-addcol="${t.id}">+ 컬럼</button>
+              <button class="btn small" data-addrow="${t.id}">+ 행</button>
+              <button class="btn small danger" data-deltable="${t.id}">삭제</button>
+            </div>
+          </div>
+          <div style="height:10px"></div>
+          <div class="twrap">
+            <table>
+              <thead>
+                <tr>
+                  ${t.columns.map((c,ci)=>`
+                    <th>
+                      <div class="row" style="justify-content:space-between; gap:8px;">
+                        <span contenteditable="true" data-colname="${t.id}:${ci}" style="outline:none;">${esc(c)}</span>
+                        <button class="btn small danger" data-delcol="${t.id}:${ci}">삭제</button>
+                      </div>
+                    </th>
+                  `).join("")}
+                  <th>행</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${t.rows.map((r,ri)=>`
+                  <tr>
+                    ${t.columns.map((_,ci)=>`
+                      <td><div class="cell" contenteditable="true" data-cell="${t.id}:${ri}:${ci}">${esc(r[ci] ?? "")}</div></td>
+                    `).join("")}
+                    <td><button class="btn small danger" data-delrow="${t.id}:${ri}">삭제</button></td>
+                  </tr>
+                `).join("")}
+              </tbody>
+            </table>
+          </div>
+        `;
+        tablesWrap.appendChild(box);
+      });
+    }
+
+    function renderPrint(){
+      printTitleOut.textContent = state.printTitle || "가격표";
+      printSubOut.textContent = state.printSub || "";
+
+      printTables.innerHTML = "";
+      state.tables.forEach(t => {
+        const section = document.createElement("div");
+        section.className = "card";
+        section.style.background = "#fff";
+        section.style.borderColor = "rgba(0,0,0,.08)";
+        section.style.boxShadow = "none";
+        section.style.margin = "0 0 14px";
+        section.innerHTML = `
+          <div style="display:flex; justify-content:space-between; align-items:flex-end; gap:10px;">
+            <div style="font-weight:900; font-size:16px; letter-spacing:-.3px; color:#111827;">
+              ${esc(t.name)}
+            </div>
+            <div style="font-size:12px; color:rgba(17,24,39,.55);">
+              ${t.rows.length}개
+            </div>
+          </div>
+          <div style="height:10px"></div>
+          <div class="ptableWrap">
+            <table class="ptable">
+              <thead>
+                <tr>${t.columns.map(c=>`<th>${esc(c)}</th>`).join("")}</tr>
+              </thead>
+              <tbody>
+                ${t.rows.map(r=>`
