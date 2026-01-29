@@ -2,135 +2,132 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>통신사별 프리미엄 시세표 에디터</title>
+    <title>3사 통합 비교 시세표</title>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <style>
-        :root { --sk: #e60012; --kt: #00b0ca; --lg: #e6007e; --bg: #f1f5f9; }
-        body { font-family: 'Pretendard', sans-serif; background: var(--bg); display: flex; justify-content: center; padding: 20px; gap: 20px; }
+        :root { --sk: #e60012; --kt: #00b0ca; --lg: #e6007e; }
+        body { font-family: 'Pretendard', sans-serif; background: #f1f5f9; padding: 20px; }
+        .container { display: flex; flex-direction: column; align-items: center; gap: 20px; }
         
-        /* 에디터 설정 */
-        .editor-container { width: 550px; background: #fff; padding: 25px; border-radius: 12px; box-shadow: 0 10px 15px rgba(0,0,0,0.1); }
-        .config-box { background: #f8fafc; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #e2e8f0; }
-        .input-row { display: grid; grid-template-columns: 1.5fr 1fr 1fr 45px; gap: 8px; margin-bottom: 8px; align-items: center; }
-        input { padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 13px; width: 100%; box-sizing: border-box; }
-        
-        /* 미리보기 디자인 */
-        #capture-area { background: #fff; width: 440px; padding: 25px; border: 1px solid #333; }
-        .shop-header { text-align: center; margin-bottom: 20px; }
-        .main-title { font-size: 26px; font-weight: 900; color: #1e293b; margin-bottom: 5px; }
-        
-        /* 통신사별 테이블 스타일 */
-        .telecom-section { margin-bottom: 25px; }
-        .table-header { color: white; padding: 10px; font-weight: bold; text-align: center; font-size: 16px; border-radius: 6px 6px 0 0; }
-        .sk { background: var(--sk); }
-        .kt { background: var(--kt); }
-        .lg { background: var(--lg); }
-        .int { background: #334155; }
+        /* 에디터 박스 */
+        .editor { background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 100%; max-width: 900px; }
+        .input-row { display: grid; grid-template-columns: 2fr repeat(6, 1fr) 45px; gap: 5px; margin-bottom: 5px; }
+        input { width: 100%; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px; text-align: center; }
+        .head-labels { display: grid; grid-template-columns: 2fr repeat(6, 1fr) 45px; gap: 5px; margin-bottom: 5px; text-align: center; font-size: 11px; font-weight: bold; }
 
-        table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-        th { background: #f1f5f9; border: 1px solid #ccc; padding: 6px; font-size: 11px; color: #64748b; }
-        td { border: 1px solid #ccc; padding: 9px; text-align: center; font-size: 14px; }
-        .model-name { text-align: left; padding-left: 10px; font-weight: 600; font-size: 13px; }
-        .price { color: #e11d48; font-weight: 800; }
+        /* 결과물 디자인 */
+        #capture-area { background: #fff; padding: 20px; border: 1px solid #333; width: 850px; }
+        .main-title { text-align: center; font-size: 24px; font-weight: 900; margin-bottom: 15px; }
+        
+        table { width: 100%; border-collapse: collapse; border: 2px solid #333; table-layout: fixed; }
+        th, td { border: 1px solid #333; padding: 8px; text-align: center; font-size: 13px; }
+        
+        /* 헤더 색상 */
+        .th-model { background: #eee; }
+        .th-sk { background: var(--sk); color: #fff; }
+        .th-kt { background: var(--kt); color: #fff; }
+        .th-lg { background: var(--lg); color: #fff; }
+        .th-sub { background: #f8fafc; font-size: 11px; }
 
-        .btn { cursor: pointer; border: none; border-radius: 6px; font-weight: bold; }
-        .btn-add { background: #10b981; color: white; padding: 5px 10px; font-size: 11px; }
-        .btn-del { background: #ef4444; color: white; height: 32px; }
-        .btn-save { background: #1e293b; color: white; width: 100%; padding: 18px; font-size: 18px; margin-top: 10px; }
+        .price { font-weight: 800; color: #e11d48; }
+        .model-name { font-weight: bold; text-align: left; padding-left: 10px; background: #fafafa; }
+
+        .btn { cursor: pointer; border: none; border-radius: 4px; font-weight: bold; }
+        .btn-add { background: #10b981; color: white; padding: 10px 20px; margin-top: 10px; }
+        .btn-save { background: #333; color: white; padding: 15px 30px; font-size: 16px; margin-top: 20px; width: 100%; max-width: 900px; }
     </style>
 </head>
 <body>
 
-<div class="editor-container">
-    <h2>📱 통신사별 시세 편집</h2>
-    <div class="config-box">
-        매장명: <input type="text" id="shopName" value="우리동네 휴대폰 성지" oninput="render()">
-        날짜: <input type="text" id="date" value="2026-01-29" oninput="render()">
+<div class="container">
+    <div class="editor">
+        <h3>📊 3사 통합 시세 편집</h3>
+        <div class="head-labels">
+            <div>모델명</div>
+            <div style="color:var(--sk)">SK번이</div><div style="color:var(--sk)">SK기변</div>
+            <div style="color:var(--kt)">KT번이</div><div style="color:var(--kt)">KT기변</div>
+            <div style="color:var(--lg)">LG번이</div><div style="color:var(--lg)">LG기변</div>
+            <div>삭제</div>
+        </div>
+        <div id="input-fields"></div>
+        <button class="btn btn-add" onclick="addRow()">+ 모델 추가</button>
     </div>
 
-    <div id="editor-list"></div>
-    <button class="btn btn-save" onclick="saveImage()">📸 시세표 이미지 저장</button>
-</div>
-
-<div id="capture-area">
-    <div class="shop-header">
-        <div class="main-title" id="v-shopName">우리동네 휴대폰 성지</div>
-        <div style="color:#64748b; font-size:14px;">📅 <span id="v-date">2026-01-29</span> 단가표</div>
+    <div id="capture-area">
+        <div class="main-title">📱 3사 통신사 통합 단가표</div>
+        <table>
+            <thead>
+                <tr>
+                    <th rowspan="2" class="th-model" width="22%">모델명</th>
+                    <th colspan="2" class="th-sk">SK Telecom</th>
+                    <th colspan="2" class="th-kt">KT</th>
+                    <th colspan="2" class="th-lg">LG U+</th>
+                </tr>
+                <tr>
+                    <th class="th-sub">번이</th><th class="th-sub">기변</th>
+                    <th class="th-sub">번이</th><th class="th-sub">기변</th>
+                    <th class="th-sub">번이</th><th class="th-sub">기변</th>
+                </tr>
+            </thead>
+            <tbody id="render-body"></tbody>
+        </table>
+        <p style="text-align: center; font-size: 11px; color: #666; margin-top: 15px;">※ 모든 시세는 공시지원금/특정 요금제 기준입니다.</p>
     </div>
-    <div id="render-zone"></div>
+
+    <button class="btn btn-save" onclick="saveImage()">📸 통합 시세표 이미지 저장</button>
 </div>
 
 <script>
-    const data = [
-        { id: 'sk', name: 'SK Telecom (109요금제)', color: 'sk', rows: [{n:'갤럭시 S24', m:'5', c:'10'}] },
-        { id: 'kt', name: 'KT (110요금제)', color: 'kt', rows: [{n:'아이폰 15', m:'20', c:'25'}] },
-        { id: 'lg', name: 'LG U+ (105요금제)', color: 'lg', rows: [{n:'갤럭시 Z플립5', m:'0', c:'5'}] },
-        { id: 'int', name: '🌐 인터넷+TV 결합사은품', color: 'int', rows: [{n:'LG+TV (3년)', m:'최대지원', c:'사은품증정'}] }
-    ];
-
-    function init() {
-        const list = document.getElementById('editor-list');
-        list.innerHTML = '';
-        data.forEach((sec, sIdx) => {
-            const div = document.createElement('div');
-            div.className = 'config-box';
-            div.innerHTML = `
-                <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
-                    <strong style="color:var(--${sec.color})">${sec.name}</strong>
-                    <button class="btn btn-add" onclick="addRow(${sIdx})">+ 추가</button>
-                </div>
-                <div id="rows-${sIdx}">
-                    ${sec.rows.map((r, rIdx) => `
-                        <div class="input-row">
-                            <input type="text" value="${r.n}" oninput="upd(${sIdx},${rIdx},'n',this.value)" placeholder="모델/상품">
-                            <input type="text" value="${r.m}" oninput="upd(${sIdx},${rIdx},'m',this.value)" placeholder="번이/지원">
-                            <input type="text" value="${r.c}" oninput="upd(${sIdx},${rIdx},'c',this.value)" placeholder="기변/비고">
-                            <button class="btn btn-del" onclick="delRow(${sIdx},${rIdx})">X</button>
-                        </div>
-                    `).join('')}
-                </div>`;
-            list.appendChild(div);
-        });
-        render();
-    }
-
-    function addRow(sIdx) { data[sIdx].rows.push({n:'', m:'', c:''}); init(); }
-    function delRow(sIdx, rIdx) { data[sIdx].rows.splice(rIdx, 1); init(); }
-    function upd(sIdx, rIdx, k, v) { data[sIdx].rows[rIdx][k] = v; render(); }
+    let rows = [{n:'아이폰 15 Pro', skb:'30', skg:'35', ktb:'28', ktg:'33', lgb:'25', lgg:'30'}];
 
     function render() {
-        document.getElementById('v-shopName').innerText = document.getElementById('shopName').value;
-        document.getElementById('v-date').innerText = document.getElementById('date').value;
-        const zone = document.getElementById('render-zone');
-        zone.innerHTML = '';
+        const inputZone = document.getElementById('input-fields');
+        const tableZone = document.getElementById('render-body');
+        inputZone.innerHTML = '';
+        tableZone.innerHTML = '';
 
-        data.forEach(sec => {
-            if(sec.rows.length === 0) return;
-            let h = `<div class="telecom-section">
-                <div class="table-header ${sec.color}">${sec.name}</div>
-                <table>
-                    <tr><th width="45%">모델명</th><th width="27.5%">번호이동</th><th width="27.5%">기기변경</th></tr>
-                    ${sec.rows.map(r => `
-                        <tr>
-                            <td class="model-name">${r.n || '-'}</td>
-                            <td class="price">${r.m || '-'}</td>
-                            <td class="price">${r.c || '-'}</td>
-                        </tr>`).join('')}
-                </table>
-            </div>`;
-            zone.innerHTML += h;
+        rows.forEach((r, idx) => {
+            // 에디터 생성
+            const rowDiv = document.createElement('div');
+            rowDiv.className = 'input-row';
+            rowDiv.innerHTML = `
+                <input type="text" value="${r.n}" oninput="upd(${idx},'n',this.value)">
+                <input type="text" value="${r.skb}" oninput="upd(${idx},'skb',this.value)">
+                <input type="text" value="${r.skg}" oninput="upd(${idx},'skg',this.value)">
+                <input type="text" value="${r.ktb}" oninput="upd(${idx},'ktb',this.value)">
+                <input type="text" value="${r.ktg}" oninput="upd(${idx},'ktg',this.value)">
+                <input type="text" value="${r.lgb}" oninput="upd(${idx},'lgb',this.value)">
+                <input type="text" value="${r.lgg}" oninput="upd(${idx},'lgg',this.value)">
+                <button class="btn" style="background:#ef4444; color:#fff;" onclick="del(${idx})">X</button>
+            `;
+            inputZone.appendChild(rowDiv);
+
+            // 표 생성
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td class="model-name">${r.n}</td>
+                <td class="price">${r.skb}</td><td class="price">${r.skg}</td>
+                <td class="price">${r.ktb}</td><td class="price">${r.ktg}</td>
+                <td class="price">${r.lgb}</td><td class="price">${r.lgg}</td>
+            `;
+            tableZone.appendChild(tr);
         });
     }
 
+    function addRow() { rows.push({n:'', skb:'', skg:'', ktb:'', ktg:'', lgb:'', lgg:''}); render(); }
+    function del(idx) { rows.splice(idx, 1); render(); }
+    function upd(idx, k, v) { rows[idx][k] = v; render(); }
+    
     function saveImage() {
         html2canvas(document.querySelector("#capture-area"), {scale:3}).then(canvas => {
             const link = document.createElement('a');
-            link.download = `시세표_${document.getElementById('date').value}.png`;
+            link.download = `통합시세표.png`;
             link.href = canvas.toDataURL();
             link.click();
         });
     }
-    init();
+
+    render();
 </script>
 </body>
 </html>
