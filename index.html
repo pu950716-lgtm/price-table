@@ -2,177 +2,135 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>Premium 성지 시세표 에디터</title>
+    <title>통신사별 프리미엄 시세표 에디터</title>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <style>
-        :root { --primary: #4f46e5; --bg: #f1f5f9; --card: #ffffff; --danger: #ef4444; }
-        body { font-family: 'Pretendard', sans-serif; background: var(--bg); display: flex; justify-content: center; padding: 20px; gap: 20px; color: #334155; }
+        :root { --sk: #e60012; --kt: #00b0ca; --lg: #e6007e; --bg: #f1f5f9; }
+        body { font-family: 'Pretendard', sans-serif; background: var(--bg); display: flex; justify-content: center; padding: 20px; gap: 20px; }
         
-        /* 왼쪽 에디터 */
-        .editor-container { width: 550px; background: var(--card); padding: 25px; border-radius: 12px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
-        .config-box { background: #eef2ff; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .config-box div { display: flex; flex-direction: column; gap: 5px; font-size: 13px; font-weight: bold; }
-        
-        .category-box { border: 1px solid #e2e8f0; padding: 15px; border-radius: 8px; margin-bottom: 20px; background: #fafafa; }
-        .category-title { font-weight: bold; margin-bottom: 12px; color: var(--primary); display: flex; justify-content: space-between; align-items: center; }
-        
-        .input-row { display: grid; gap: 8px; margin-bottom: 8px; align-items: center; background: #fff; padding: 5px; border-radius: 4px; border: 1px solid #eee; }
-        .row-mobile { grid-template-columns: 1.5fr 1fr 1fr 45px; }
-        .row-internet { grid-template-columns: 1.5fr 1.5fr 0.5fr 45px; }
-        
+        /* 에디터 설정 */
+        .editor-container { width: 550px; background: #fff; padding: 25px; border-radius: 12px; box-shadow: 0 10px 15px rgba(0,0,0,0.1); }
+        .config-box { background: #f8fafc; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #e2e8f0; }
+        .input-row { display: grid; grid-template-columns: 1.5fr 1fr 1fr 45px; gap: 8px; margin-bottom: 8px; align-items: center; }
         input { padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 13px; width: 100%; box-sizing: border-box; }
-        input:focus { border-color: var(--primary); outline: none; }
         
-        /* 오른쪽 미리보기 */
-        .preview-container { position: sticky; top: 20px; }
-        #capture-area { background: #fff; width: 420px; padding: 25px; border: 1px solid #333; }
+        /* 미리보기 디자인 */
+        #capture-area { background: #fff; width: 440px; padding: 25px; border: 1px solid #333; }
+        .shop-header { text-align: center; margin-bottom: 20px; }
+        .main-title { font-size: 26px; font-weight: 900; color: #1e293b; margin-bottom: 5px; }
         
-        .shop-info { text-align: center; margin-bottom: 15px; }
-        #viewShopName { font-size: 24px; font-weight: 900; color: var(--primary); margin-bottom: 5px; }
-        #viewContact { font-size: 13px; color: #64748b; }
-        
-        .main-header { background: #333; color: #fff; text-align: center; padding: 10px; font-size: 16px; font-weight: bold; margin-bottom: 15px; border-radius: 4px; }
-        
-        .section-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; table-layout: fixed; }
-        .section-table th { background: #f8fafc; border: 1px solid #ccc; padding: 8px; font-size: 12px; color: #475569; }
-        .section-table td { border: 1px solid #ccc; padding: 10px; text-align: center; font-size: 14px; word-break: break-all; }
-        .cat-header { background: var(--primary) !important; color: white !important; font-weight: bold; font-size: 14px; letter-spacing: 1px; }
-        .price-text { color: #e11d48; font-weight: 800; }
+        /* 통신사별 테이블 스타일 */
+        .telecom-section { margin-bottom: 25px; }
+        .table-header { color: white; padding: 10px; font-weight: bold; text-align: center; font-size: 16px; border-radius: 6px 6px 0 0; }
+        .sk { background: var(--sk); }
+        .kt { background: var(--kt); }
+        .lg { background: var(--lg); }
+        .int { background: #334155; }
 
-        /* 버튼 */
-        .btn { cursor: pointer; border: none; border-radius: 6px; font-weight: bold; transition: 0.2s; }
-        .btn-add { background: #10b981; color: white; padding: 6px 12px; font-size: 12px; }
-        .btn-del { background: var(--danger); color: white; height: 32px; font-size: 11px; }
-        .btn-save { background: #1e293b; color: white; width: 100%; padding: 18px; font-size: 18px; margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 10px; }
-        .btn:hover { opacity: 0.8; transform: translateY(-1px); }
+        table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+        th { background: #f1f5f9; border: 1px solid #ccc; padding: 6px; font-size: 11px; color: #64748b; }
+        td { border: 1px solid #ccc; padding: 9px; text-align: center; font-size: 14px; }
+        .model-name { text-align: left; padding-left: 10px; font-weight: 600; font-size: 13px; }
+        .price { color: #e11d48; font-weight: 800; }
+
+        .btn { cursor: pointer; border: none; border-radius: 6px; font-weight: bold; }
+        .btn-add { background: #10b981; color: white; padding: 5px 10px; font-size: 11px; }
+        .btn-del { background: #ef4444; color: white; height: 32px; }
+        .btn-save { background: #1e293b; color: white; width: 100%; padding: 18px; font-size: 18px; margin-top: 10px; }
     </style>
 </head>
 <body>
 
 <div class="editor-container">
-    <h2 style="margin:0 0 20px 0;">🛠️ 시세표 마스터 에디터</h2>
-    
+    <h2>📱 통신사별 시세 편집</h2>
     <div class="config-box">
-        <div>
-            매장 명칭 <input type="text" id="shopNameInput" value="우리동네 성지" oninput="renderTable()">
-        </div>
-        <div>
-            문의처 (카톡 등) <input type="text" id="contactInput" value="카톡: @성지친구" oninput="renderTable()">
-        </div>
-        <div>
-            기준 날짜 <input type="text" id="dateInput" value="2026-01-29" oninput="renderTable()">
-        </div>
+        매장명: <input type="text" id="shopName" value="우리동네 휴대폰 성지" oninput="render()">
+        날짜: <input type="text" id="date" value="2026-01-29" oninput="render()">
     </div>
 
-    <div id="editor-fields"></div>
-
-    <button class="btn btn-save" onclick="saveImage()">📸 이미지로 저장하기</button>
+    <div id="editor-list"></div>
+    <button class="btn btn-save" onclick="saveImage()">📸 시세표 이미지 저장</button>
 </div>
 
-<div class="preview-container">
-    <div id="capture-area">
-        <div class="shop-info">
-            <div id="viewShopName">우리동네 성지</div>
-            <div id="viewContact">카톡: @성지친구</div>
-        </div>
-        <div class="main-header">📢 단가 시세표 (<span id="viewDate">2026-01-29</span>)</div>
-        <div id="table-render-zone"></div>
-        <p style="font-size:11px; color:#94a3b8; text-align:center; margin-top: 10px;">※ 위 단가는 실시간 변동될 수 있으며, 재고 확인 필수입니다.</p>
+<div id="capture-area">
+    <div class="shop-header">
+        <div class="main-title" id="v-shopName">우리동네 휴대폰 성지</div>
+        <div style="color:#64748b; font-size:14px;">📅 <span id="v-date">2026-01-29</span> 단가표</div>
     </div>
+    <div id="render-zone"></div>
 </div>
 
 <script>
-    const categories = [
-        { id: 'galaxy', name: '✨ GALAXY (삼성)', type: 'mobile', rows: [{v1:'갤럭시 S24', v2:'0', v3:'10'}] },
-        { id: 'iphone', name: '🍎 IPHONE (애플)', type: 'mobile', rows: [{v1:'아이폰 15 Pro', v2:'35', v3:'40'}] },
-        { id: 'kids', name: '👶 키즈폰/효도폰', type: 'mobile', rows: [{v1:'시나모롤폰 2', v2:'공짜', v3:'공짜'}] },
-        { id: 'internet', name: '🌐 인터넷 + TV 결합', type: 'internet', rows: [{v1:'SK 500M+TV', v2:'최대 지원', v3:'3년약정'}] }
+    const data = [
+        { id: 'sk', name: 'SK Telecom (109요금제)', color: 'sk', rows: [{n:'갤럭시 S24', m:'5', c:'10'}] },
+        { id: 'kt', name: 'KT (110요금제)', color: 'kt', rows: [{n:'아이폰 15', m:'20', c:'25'}] },
+        { id: 'lg', name: 'LG U+ (105요금제)', color: 'lg', rows: [{n:'갤럭시 Z플립5', m:'0', c:'5'}] },
+        { id: 'int', name: '🌐 인터넷+TV 결합사은품', color: 'int', rows: [{n:'LG+TV (3년)', m:'최대지원', c:'사은품증정'}] }
     ];
 
-    function initEditor() {
-        const container = document.getElementById('editor-fields');
-        container.innerHTML = '';
-        categories.forEach((cat, catIdx) => {
-            const isInt = cat.type === 'internet';
-            const box = document.createElement('div');
-            box.className = 'category-box';
-            box.innerHTML = `
-                <div class="category-title">
-                    <span>${cat.name}</span>
-                    <button class="btn btn-add" onclick="addRow(${catIdx})">+ 줄 추가</button>
+    function init() {
+        const list = document.getElementById('editor-list');
+        list.innerHTML = '';
+        data.forEach((sec, sIdx) => {
+            const div = document.createElement('div');
+            div.className = 'config-box';
+            div.innerHTML = `
+                <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                    <strong style="color:var(--${sec.color})">${sec.name}</strong>
+                    <button class="btn btn-add" onclick="addRow(${sIdx})">+ 추가</button>
                 </div>
-                <div id="cat-rows-${catIdx}">
-                    ${cat.rows.map((row, rowIdx) => `
-                        <div class="input-row ${isInt ? 'row-internet' : 'row-mobile'}">
-                            <input type="text" placeholder="${isInt ? '상품명' : '모델명'}" value="${row.v1}" oninput="updateData(${catIdx}, ${rowIdx}, 'v1', this.value)">
-                            <input type="text" placeholder="${isInt ? '지원금' : '번이'}" value="${row.v2}" oninput="updateData(${catIdx}, ${rowIdx}, 'v2', this.value)">
-                            <input type="text" placeholder="${isInt ? '비고' : '기변'}" value="${row.v3}" oninput="updateData(${catIdx}, ${rowIdx}, 'v3', this.value)">
-                            <button class="btn btn-del" onclick="delRow(${catIdx}, ${rowIdx})">삭제</button>
+                <div id="rows-${sIdx}">
+                    ${sec.rows.map((r, rIdx) => `
+                        <div class="input-row">
+                            <input type="text" value="${r.n}" oninput="upd(${sIdx},${rIdx},'n',this.value)" placeholder="모델/상품">
+                            <input type="text" value="${r.m}" oninput="upd(${sIdx},${rIdx},'m',this.value)" placeholder="번이/지원">
+                            <input type="text" value="${r.c}" oninput="upd(${sIdx},${rIdx},'c',this.value)" placeholder="기변/비고">
+                            <button class="btn btn-del" onclick="delRow(${sIdx},${rIdx})">X</button>
                         </div>
                     `).join('')}
-                </div>
-            `;
-            container.appendChild(box);
+                </div>`;
+            list.appendChild(div);
         });
-        renderTable();
+        render();
     }
 
-    function addRow(catIdx) {
-        categories[catIdx].rows.push({v1:'', v2:'', v3:''});
-        initEditor();
-    }
+    function addRow(sIdx) { data[sIdx].rows.push({n:'', m:'', c:''}); init(); }
+    function delRow(sIdx, rIdx) { data[sIdx].rows.splice(rIdx, 1); init(); }
+    function upd(sIdx, rIdx, k, v) { data[sIdx].rows[rIdx][k] = v; render(); }
 
-    function delRow(catIdx, rowIdx) {
-        categories[catIdx].rows.splice(rowIdx, 1);
-        initEditor();
-    }
-
-    function updateData(catIdx, rowIdx, field, val) {
-        categories[catIdx].rows[rowIdx][field] = val;
-        renderTable();
-    }
-
-    function renderTable() {
-        document.getElementById('viewShopName').innerText = document.getElementById('shopNameInput').value;
-        document.getElementById('viewContact').innerText = document.getElementById('contactInput').value;
-        document.getElementById('viewDate').innerText = document.getElementById('dateInput').value;
-        
-        const zone = document.getElementById('table-render-zone');
+    function render() {
+        document.getElementById('v-shopName').innerText = document.getElementById('shopName').value;
+        document.getElementById('v-date').innerText = document.getElementById('date').value;
+        const zone = document.getElementById('render-zone');
         zone.innerHTML = '';
 
-        categories.forEach(cat => {
-            if(cat.rows.length === 0) return;
-            const isInt = cat.type === 'internet';
-            let html = `<table class="section-table">
-                <thead>
-                    <tr><th colspan="3" class="cat-header">${cat.name}</th></tr>
-                    <tr><th width="45%">${isInt ? '상품명' : '모델명'}</th><th width="27.5%">${isInt ? '현금지원' : '번호이동'}</th><th width="27.5%">${isInt ? '비고' : '기기변경'}</th></tr>
-                </thead>
-                <tbody>`;
-            cat.rows.forEach(row => {
-                html += `<tr>
-                    <td style="text-align:left; font-weight:600;">${row.v1 || '-'}</td>
-                    <td class="price-text">${row.v2 || '-'}</td>
-                    <td class="${isInt ? '' : 'price-text'}">${row.v3 || '-'}</td>
-                </tr>`;
-            });
-            html += `</tbody></table>`;
-            zone.innerHTML += html;
+        data.forEach(sec => {
+            if(sec.rows.length === 0) return;
+            let h = `<div class="telecom-section">
+                <div class="table-header ${sec.color}">${sec.name}</div>
+                <table>
+                    <tr><th width="45%">모델명</th><th width="27.5%">번호이동</th><th width="27.5%">기기변경</th></tr>
+                    ${sec.rows.map(r => `
+                        <tr>
+                            <td class="model-name">${r.n || '-'}</td>
+                            <td class="price">${r.m || '-'}</td>
+                            <td class="price">${r.c || '-'}</td>
+                        </tr>`).join('')}
+                </table>
+            </div>`;
+            zone.innerHTML += h;
         });
     }
 
     function saveImage() {
-        const area = document.getElementById('capture-area');
-        // 저장 시 고화질을 위해 scale 옵션 추가
-        html2canvas(area, { scale: 3, useCORS: true }).then(canvas => {
+        html2canvas(document.querySelector("#capture-area"), {scale:3}).then(canvas => {
             const link = document.createElement('a');
-            link.download = `${document.getElementById('shopNameInput').value}_시세표.png`;
-            link.href = canvas.toDataURL('image/png');
+            link.download = `시세표_${document.getElementById('date').value}.png`;
+            link.href = canvas.toDataURL();
             link.click();
         });
     }
-
-    initEditor();
+    init();
 </script>
 </body>
 </html>
